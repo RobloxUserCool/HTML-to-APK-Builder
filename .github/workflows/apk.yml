@@ -1,12 +1,21 @@
 name: Build Android APK
-run-name: APK build ${{ inputs.build_id }}
+run-name: >-
+  ${{ inputs.build_type == 'builder' && 'Build Builder App' || format('APK build {0}', inputs.build_id) }}
 
 on:
   workflow_dispatch:
     inputs:
-      build_id:
-        description: "Unique build identifier"
+      build_type:
+        description: "What to build"
         required: true
+        type: choice
+        options:
+          - html
+          - builder
+        default: html
+      build_id:
+        description: "Build ID (only for HTML app)"
+        required: false
         type: string
 
 permissions:
@@ -39,7 +48,19 @@ jobs:
         with:
           gradle-version: "8.9"
 
-      - name: Prepare app files
+      - name: Prepare Builder app
+        if: inputs.build_type == 'builder'
+        run: |
+          mkdir -p app/src/main/assets
+          cp index.html app/src/main/assets/index.html
+          cat > app/src/main/res/values/strings.xml <<'EOF'
+          <resources>
+              <string name="app_name">HTML-to-APK Builder</string>
+          </resources>
+          EOF
+
+      - name: Prepare uploaded HTML app
+        if: inputs.build_type == 'html'
         env:
           BUILD_ID: ${{ inputs.build_id }}
         run: |
@@ -110,12 +131,18 @@ jobs:
       - name: Build APK
         env:
           BUILD_ID: ${{ inputs.build_id }}
-        run: gradle --no-daemon assembleDebug -PbuildId="$BUILD_ID"
+          BUILD_TYPE: ${{ inputs.build_type }}
+        run: |
+          if [ "$BUILD_TYPE" = "builder" ]; then
+            gradle --no-daemon assembleDebug -PbuildId=builder
+          else
+            gradle --no-daemon assembleDebug -PbuildId="$BUILD_ID"
+          fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: apk-${{ inputs.build_id }}
+          name: ${{ inputs.build_type == 'builder' && 'html-to-apk-builder' || format('apk-{0}', inputs.build_id) }}
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 3
