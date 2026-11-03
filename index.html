@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#10131d">
+<title>HTML to APK Builder</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0e16;--panel:#141a29;--line:#29334a;--text:#eef2ff;--muted:#9ba8c2;--a:#8b7cff;--b:#36d6b2}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0%,#25204b 0,transparent 35%),var(--bg);color:var(--text);font:15px system-ui,Arial,sans-serif;min-height:100vh;padding:24px}
+main{max-width:680px;margin:35px auto}.brand{font-size:13px;color:var(--b);letter-spacing:2px;font-weight:800}.panel{margin-top:18px;padding:24px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(145deg,#171e30,#101522);box-shadow:0 20px 70px #0006}
+h1{font-size:clamp(27px,6vw,38px);margin:8px 0}.sub{color:var(--muted);line-height:1.55;margin-bottom:24px}
+label{display:block;font-weight:650;margin:17px 0 8px}input{width:100%;padding:14px;border:1px solid var(--line);border-radius:12px;background:#0b1020;color:var(--text);font:inherit}input[type=file]{padding:11px}
+button{width:100%;border:0;border-radius:13px;padding:16px;margin-top:22px;background:linear-gradient(100deg,var(--a),#5c9bff);color:white;font-weight:800;font-size:16px}
+button:disabled{opacity:.5}#status{display:none;margin-top:18px;padding:15px;border:1px solid var(--line);border-radius:12px;background:#0b1020;line-height:1.5;overflow-wrap:anywhere}
+small,.hint{color:var(--muted);line-height:1.5}.hint{font-size:12px;margin-top:7px}.foot{margin-top:18px;text-align:center;color:var(--muted);font-size:12px}
+a{color:#9cafff}
+</style>
+</head>
+<body>
+<main>
+<div class="brand">HTML → ANDROID</div>
+<div class="panel">
+<h1>HTML to APK Builder</h1>
+<div class="sub">Загрузи HTML-файл, укажи название приложения и дождись сборки настоящего Android APK.</div>
+<form id="form">
+<label for="worker">Адрес Cloudflare Worker API</label>
+<input id="worker" type="url" placeholder="https://your-worker.workers.dev" required>
+<div class="hint">Адрес Worker, который будет принимать файлы и запускать сборку.</div>
+
+<label for="appName">Название приложения</label>
+<input id="appName" maxlength="40" placeholder="Моё приложение" required>
+
+<label for="html">HTML-файл</label>
+<input id="html" type="file" accept=".html,.htm,text/html" required>
+
+<label for="icon">Иконка приложения (необязательно)</label>
+<input id="icon" type="file" accept="image/png,image/jpeg,image/webp">
+<div class="hint">Лучше квадратная PNG-иконка. Если не загрузить, будет создана стандартная.</div>
+
+<button id="submit" type="submit">Собрать APK</button>
+</form>
+<div id="status" role="status"></div>
+</div>
+<div class="foot">Сборка выполняется через GitHub Actions. Для работы нужен настроенный Worker и GitHub token.</div>
+</main>
+<script>
+const form=document.getElementById('form');
+const statusBox=document.getElementById('status');
+const submit=document.getElementById('submit');
+const workerInput=document.getElementById('worker');
+
+workerInput.value=localStorage.getItem('apk_worker_url')||'https://html-to-apk-builder.daniil-suhorukov215.workers.dev';
+
+function show(message){statusBox.style.display='block';statusBox.textContent=message;}
+function baseUrl(){return workerInput.value.trim().replace(/\/+$/,'');}
+
+async function requestStatus(base,id){
+  const r=await fetch(base+'/status?build_id='+encodeURIComponent(id));
+  if(!r.ok) throw new Error('Worker вернул HTTP '+r.status);
+  return await r.json();
+}
+
+form.addEventListener('submit',async e=>{
+  e.preventDefault();
+
+  const base=baseUrl();
+  const html=document.getElementById('html').files[0];
+  const icon=document.getElementById('icon').files[0];
+
+  if(!base||!html)return;
+
+  if(!/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(base)){
+    show('Укажи корректный HTTPS-адрес Worker.');
+    return;
+  }
+
+  if(html.size>2*1024*1024){
+    show('HTML-файл слишком большой. Максимум — 2 МБ.');
+    return;
+  }
+
+  if(icon&&icon.size>2*1024*1024){
+    show('Иконка слишком большая. Максимум — 2 МБ.');
+    return;
+  }
+
+  localStorage.setItem('apk_worker_url',base);
+
+  const data=new FormData();
+  data.append('appName',document.getElementById('appName').value.trim());
+  data.append('html',html);
+  if(icon)data.append('icon',icon);
+
+  submit.disabled=true;
+
+  try{
+    show('Загружаю файлы и запускаю сборку…');
+
+    const response=await fetch(base+'/build',{
+      method:'POST',
+      body:data
+    });
+
+    const result=await response.json();
+
+    if(!response.ok)throw new Error(result.error||'Не удалось запустить сборку');
+
+    const id=result.build_id;
+
+    show('Сборка запущена. Не закрывай страницу — проверяю статус…');
+
+    for(let i=0;i<360;i++){
+      await new Promise(resolve=>setTimeout(resolve,5000));
+
+      const state=await requestStatus(base,id);
+
+      if(state.status==='completed'&&state.conclusion==='success'){
+        show('APK готов. Начинаю скачивание архива с APK…');
+        window.location.href=base+'/download?build_id='+encodeURIComponent(id);
+        return;
+      }
+
+      if(state.status==='completed'){
+        throw new Error('Сборка завершилась с ошибкой. Открой GitHub → Actions → последний запуск, чтобы увидеть журнал.');
+      }
+
+      show('Сборка выполняется… Статус: '+(state.status||'ожидание')+'. Проверка '+(i+1)+'/360.');
+    }
+
+    show('Сборка всё ещё выполняется. Проверь GitHub → Actions. Можно вернуться сюда позже и повторить проверку вручную.');
+
+  }catch(err){
+    show('Ошибка: '+err.message);
+  }finally{
+    submit.disabled=false;
+  }
+});
+</script>
+</body>
+</html>
