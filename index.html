@@ -447,13 +447,7 @@ h1 span{
     </div>
 
     <form id="form">
-      <div class="field">
-        <label for="worker">Адрес Cloudflare Worker API</label>
-        <div class="input-wrap">
-          <input id="worker" type="url" placeholder="https://your-worker.workers.dev" required autocomplete="url" spellcheck="false">
-        </div>
-        <div class="hint">Сервер обработки и сборки Android-приложения.</div>
-      </div>
+      <input id="worker" type="hidden">
 
       <div class="field">
         <label for="appName">Название приложения</label>
@@ -689,4 +683,4 @@ form.addEventListener('submit',async e=>{
 });
 </script>
 </body>
-                                                                                                                                           </html>
+  </html>
