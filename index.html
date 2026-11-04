@@ -3,61 +3,607 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#10131d">
+<meta name="theme-color" content="#11152b">
 <title>HTML to APK Builder</title>
 <style>
-:root{color-scheme:dark;--bg:#0b0e16;--panel:#141a29;--line:#29334a;--text:#eef2ff;--muted:#9ba8c2;--a:#8b7cff;--b:#36d6b2}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0%,#25204b 0,transparent 35%),var(--bg);color:var(--text);font:15px system-ui,Arial,sans-serif;min-height:100vh;padding:24px}
-main{max-width:680px;margin:35px auto}.brand{font-size:13px;color:var(--b);letter-spacing:2px;font-weight:800}.panel{margin-top:18px;padding:24px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(145deg,#171e30,#101522);box-shadow:0 20px 70px #0006}
-h1{font-size:clamp(27px,6vw,38px);margin:8px 0}.sub{color:var(--muted);line-height:1.55;margin-bottom:24px}
-label{display:block;font-weight:650;margin:17px 0 8px}input{width:100%;padding:14px;border:1px solid var(--line);border-radius:12px;background:#0b1020;color:var(--text);font:inherit}input[type=file]{padding:11px}
-button{width:100%;border:0;border-radius:13px;padding:16px;margin-top:22px;background:linear-gradient(100deg,var(--a),#5c9bff);color:white;font-weight:800;font-size:16px}
-button:disabled{opacity:.5}#status{display:none;margin-top:18px;padding:15px;border:1px solid var(--line);border-radius:12px;background:#0b1020;line-height:1.5;overflow-wrap:anywhere}
-small,.hint{color:var(--muted);line-height:1.5}.hint{font-size:12px;margin-top:7px}.foot{margin-top:18px;text-align:center;color:var(--muted);font-size:12px}
-a{color:#9cafff}
+:root{
+  color-scheme:dark;
+  --bg:#090d1b;--panel:rgba(20,27,49,.78);--panel2:#111a32;
+  --line:rgba(151,164,220,.17);--text:#f2f4ff;--muted:#9ca9c8;
+  --a:#6677ff;--b:#a05cff;--cyan:#62d8e8;
+  --gradient:linear-gradient(110deg,#5575ff 0%,#8261f5 52%,#b35ce9 100%);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;min-height:100vh;padding:25px 17px 40px;overflow-x:hidden;
+  background:radial-gradient(ellipse at 12% 0%,rgba(75,83,211,.25),transparent 38%),
+             radial-gradient(ellipse at 92% 15%,rgba(151,69,210,.2),transparent 34%),
+             radial-gradient(ellipse at 50% 100%,rgba(48,102,194,.12),transparent 40%),var(--bg);
+  color:var(--text);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.18;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(to bottom,black,transparent 85%)}
+main{position:relative;max-width:760px;margin:24px auto 0;animation:appear .65s ease both}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:27px}
+.identity{display:flex;align-items:center;gap:12px}
+.logo{width:43px;height:43px;display:grid;place-items:center;border-radius:14px;background:var(--gradient);box-shadow:0 8px 28px #7668ff55;color:white;font-weight:950;font-size:19px;letter-spacing:-1px}
+.brand{font-size:13px;font-weight:850;letter-spacing:1.5px}
+.brand-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.pill{display:flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid var(--line);border-radius:30px;background:#ffffff08;color:#c7d0ec;font-size:11px;white-space:nowrap}
+.pulse{width:7px;height:7px;border-radius:50%;background:#55d6ae;box-shadow:0 0 12px #55d6ae}
+.hero{margin:0 0 23px;padding:12px 2px 5px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;color:#aeb9ff;font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase}
+.eyebrow:before{content:"";width:19px;height:2px;border-radius:2px;background:var(--gradient)}
+h1{font-size:clamp(31px,7vw,47px);line-height:1.08;letter-spacing:-1.7px;margin:12px 0 11px;font-weight:850}
+h1 span{background:var(--gradient);background-clip:text;-webkit-background-clip:text;color:transparent}
+.app-name-input{
+  height:66px!important;padding:0 19px!important;border:1px solid #8175ff66!important;
+  border-radius:17px!important;background:linear-gradient(110deg,#111a35,#17152f)!important;
+  font-size:18px!important;font-weight:650!important;letter-spacing:.1px;
+  box-shadow:inset 0 1px #ffffff0a,0 8px 24px #0002;
+}
+.app-name-input:focus{
+  border-color:#a18aff!important;box-shadow:0 0 0 4px #806bff25,0 10px 28px #0003!important;
+  background:linear-gradient(110deg,#151f40,#21183d)!important;
+}
+.app-name-input::placeholder{color:#7783a5;font-weight:450}
+.panel{padding:clamp(19px,4vw,29px);border:1px solid var(--line);border-radius:25px;background:linear-gradient(145deg,rgba(26,34,61,.88),rgba(14,20,38,.9));box-shadow:0 24px 80px #0005,inset 0 1px #ffffff0a;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:23px}
+.panel-title{font-size:17px;font-weight:800;letter-spacing:-.3px}
+.panel-caption{font-size:11px;color:var(--muted);margin-top:3px}
+.step-tag{font-size:10px;color:#c1baff;background:#8068ff1c;border:1px solid #8976ff35;border-radius:20px;padding:6px 10px;white-space:nowrap}
+.field{margin-top:20px}
+label{display:block;font-size:13px;font-weight:700;color:#e1e6fb;margin:0 0 9px}
+.input-wrap{position:relative}
+input[type=url],input[type=text]{width:100%;height:49px;padding:0 15px;border:1px solid var(--line);border-radius:13px;background:rgba(7,12,27,.72);color:var(--text);font:inherit;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s,background .2s}
+input::placeholder{color:#687593}
+input[type=url]:focus,input[type=text]:focus{border-color:#8175ff;box-shadow:0 0 0 3px #7669ff20;background:#0d142a}
+.hint{font-size:11px;color:var(--muted);line-height:1.55;margin-top:7px}
+.file-drop{position:relative;display:flex;align-items:center;gap:14px;min-height:91px;padding:16px;border:1px dashed #6573a7a8;border-radius:16px;background:linear-gradient(120deg,#536bff0b,#a35cff0b);cursor:pointer;overflow:hidden;transition:transform .2s,border-color .2s,background .2s,box-shadow .2s}
+.file-drop:hover,.file-drop:focus-within{border-color:#9b8cff;background:linear-gradient(120deg,#536bff20,#a35cff18);box-shadow:0 8px 25px #625cff12}
+.file-drop:active{transform:scale(.99)}
+.file-drop input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.file-icon{width:43px;height:43px;flex:none;border-radius:13px;display:grid;place-items:center;background:linear-gradient(140deg,#6178ff2b,#a45cff2b);color:#b9baff}
+.file-icon svg{width:21px;height:21px}
+.file-copy{min-width:0;flex:1}
+.file-main{font-size:13px;font-weight:750;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-sub{font-size:11px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}
+.file-action{font-size:11px;font-weight:750;color:#c4baff;border:1px solid #9582ff4d;border-radius:9px;padding:7px 9px;white-space:nowrap}
+.file-drop.selected{border-style:solid;border-color:#53cda9;background:#43c99a0c}
+.file-drop.selected .file-icon{background:#39c89a20;color:#6be0ba}
+.optional{font-weight:500;color:var(--muted);font-size:11px;margin-left:5px}
+.primary{
+  position:relative;display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;min-height:55px;margin-top:25px;padding:15px 20px;overflow:hidden;
+  border:0;border-radius:15px;background:var(--gradient);color:white;
+  font:800 15px system-ui,Arial,sans-serif;letter-spacing:.1px;cursor:pointer;
+  box-shadow:0 10px 30px #6e65ff3d,inset 0 1px #ffffff45;
+  transition:transform .2s,box-shadow .2s,filter .2s;
+}
+.primary:before{content:"";position:absolute;top:-80%;left:-45%;width:35%;height:260%;transform:rotate(25deg);background:linear-gradient(90deg,transparent,#ffffff35,transparent);transition:left .65s ease}
+.primary:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 15px 36px #6e65ff58;filter:saturate(1.12)}
+.primary:hover:not(:disabled):before{left:125%}
+.primary:active:not(:disabled){transform:translateY(0) scale(.99)}
+.primary:disabled{opacity:.48;cursor:not-allowed;box-shadow:none}
+.primary svg{width:19px;height:19px}
+#status{display:none;margin-top:19px;padding:18px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,#101a34f2,#0a1022f5);line-height:1.55;overflow-wrap:anywhere;font-size:13px;animation:fadeUp .35s ease both;box-shadow:0 14px 38px #0003,inset 0 1px #ffffff0a;position:relative;overflow:hidden}
+#status:before{content:"";position:absolute;inset:0 0 auto;height:1px;background:linear-gradient(90deg,transparent,#9b83ff,transparent);opacity:.75}
+.loading-scene{display:flex;align-items:center;gap:17px;padding:8px 2px 17px}
+.loader-art{position:relative;width:76px;height:76px;flex:none;display:grid;place-items:center}
+.loader-core{width:29px;height:29px;border-radius:10px;background:var(--gradient);box-shadow:0 0 22px #8871ff99,0 0 45px #755fff55;transform:rotate(45deg);animation:corePulse 2s ease-in-out infinite}
+.loader-ring{position:absolute;inset:5px;border:1px solid #8b83ff55;border-radius:50%;animation:spin 4s linear infinite}
+.loader-ring:before{content:"";position:absolute;width:8px;height:8px;border-radius:50%;background:#b8a4ff;box-shadow:0 0 13px #a88cff;top:3px;left:10px}
+.loader-ring.ring-two{inset:0;border-color:#61d8e844;border-right-color:#61d8e8;animation:spinReverse 5.5s linear infinite}
+.loader-ring.ring-two:before{width:5px;height:5px;background:#6ce5ed;box-shadow:0 0 12px #6ce5ed;top:auto;left:auto;right:7px;bottom:8px}
+.loader-copy{min-width:0;flex:1}
+.loader-kicker{font-size:10px;font-weight:850;letter-spacing:1.7px;text-transform:uppercase;color:#9f9aff;margin-bottom:4px}
+.loader-stage{font-size:14px;font-weight:800;color:#f1f2ff}
+.loader-sub{font-size:11px;color:var(--muted);margin-top:3px}
+#status[data-kind="success"] .loader-core{background:linear-gradient(135deg,#40d9a3,#60b9e9);animation:none;transform:rotate(45deg)}
+#status[data-kind="success"] .loader-ring,#status[data-kind="success"] .loader-ring:before{animation:none;opacity:.4}
+#status[data-kind="error"] .loader-core{background:linear-gradient(135deg,#ff7777,#b95cff);animation:none}
+.progress-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:15px;font-size:10px;color:#9da9ca;font-weight:750;letter-spacing:.5px}
+#progressPercent{font-variant-numeric:tabular-nums;color:#c9c0ff;font-size:12px}
+.progress-track{height:7px;margin-top:8px;border-radius:20px;background:#ffffff10;overflow:hidden;position:relative}
+.progress-bar{height:100%;width:0;border-radius:20px;background:linear-gradient(90deg,#597bff,#9a65ff,#61d8e8);transition:width .55s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 14px #8c71ff88;position:relative}
+.progress-bar:after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent,#ffffff8a,transparent);transform:translateX(-100%);animation:progressShine 1.7s ease-in-out infinite}
+#status[data-kind="error"]{border-color:#ff727255;background:#ff55550b}
+#status[data-kind="success"]{border-color:#51d5a255;background:#42d5a00b}
+.status-top{display:flex;align-items:center;gap:9px;font-weight:750;margin-bottom:6px}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#9a8aff;box-shadow:0 0 12px currentColor;flex:none}
+#status[data-kind="error"] .status-dot{background:#ff7777}
+#status[data-kind="success"] .status-dot{background:#59d6a9}
+.status-detail{color:var(--muted);font-size:12px}
+
+.foot{display:flex;align-items:center;justify-content:center;gap:7px;margin:19px auto 0;text-align:center;color:#7f8ba8;font-size:11px;line-height:1.6}
+.foot svg{width:14px;height:14px;flex:none;color:#9d91ff}
+@keyframes appear{from{opacity:0;transform:translateY(13px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes spinReverse{to{transform:rotate(-360deg)}}
+@keyframes corePulse{0%,100%{transform:rotate(45deg) scale(.88);filter:brightness(.95)}50%{transform:rotate(45deg) scale(1.08);filter:brightness(1.3)}}
+@keyframes progressShine{0%{transform:translateX(-120%)}65%,100%{transform:translateX(120%)}}
+
+/* Дополнительная полировка интерфейса */
+:root{
+  --ease-out:cubic-bezier(.16,1,.3,1);
+}
+body:after{
+  content:"";position:fixed;z-index:-1;inset:-20%;
+  pointer-events:none;opacity:.55;
+  background:
+    radial-gradient(circle at 18% 28%,#6677ff20 0,transparent 22%),
+    radial-gradient(circle at 82% 42%,#bd63ff18 0,transparent 23%),
+    radial-gradient(circle at 52% 82%,#42d9e815 0,transparent 21%);
+  filter:blur(22px);
+  animation:ambientDrift 18s ease-in-out infinite alternate;
+}
+main{animation:appear .8s var(--ease-out) both}
+.logo{
+  position:relative;overflow:hidden;isolation:isolate;
+  transition:transform .45s var(--ease-out),box-shadow .45s ease;
+}
+.logo:after{
+  content:"";position:absolute;z-index:-1;top:-70%;left:-55%;width:45%;height:240%;
+  transform:rotate(28deg);background:linear-gradient(90deg,transparent,#ffffff75,transparent);
+  animation:logoSweep 5s ease-in-out infinite;
+}
+.identity:hover .logo{transform:translateY(-3px) rotate(-5deg) scale(1.04);box-shadow:0 13px 34px #7668ff77}
+.brand{transition:letter-spacing .3s ease}
+.identity:hover .brand{letter-spacing:1.8px}
+.pill{transition:transform .3s var(--ease-out),border-color .3s,background .3s,box-shadow .3s}
+.pill:hover{transform:translateY(-2px);border-color:#7f86ff66;background:#ffffff0d;box-shadow:0 8px 22px #0003}
+.pulse{animation:statusPulse 2.2s ease-in-out infinite}
+.hero h1{animation:titleFloat 6s ease-in-out infinite}
+h1 span{
+  background-size:200% 100%;animation:gradientFlow 7s linear infinite;
+}
+.panel{
+  position:relative;isolation:isolate;overflow:hidden;
+  transition:transform .45s var(--ease-out),border-color .4s,box-shadow .4s;
+}
+.panel:before{
+  content:"";position:absolute;z-index:-1;inset:0;border-radius:inherit;padding:1px;
+  background:linear-gradient(125deg,#8d83ff55,transparent 28%,#5ad8e822 58%,transparent 78%,#b36cff44);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.8;
+  background-size:200% 200%;animation:borderFlow 12s linear infinite;
+}
+.panel:hover{border-color:#8d83ff45;box-shadow:0 28px 90px #0006,inset 0 1px #ffffff10}
+.panel-head{transition:transform .3s var(--ease-out)}
+.panel-title{transition:color .25s,text-shadow .25s}
+.panel:hover .panel-title{color:#fff;text-shadow:0 0 22px #9c83ff45}
+.step-tag{transition:transform .3s var(--ease-out),background .3s,border-color .3s}
+.panel:hover .step-tag{transform:translateY(-2px);background:#8068ff29;border-color:#a18aff66}
+.field{animation:fieldEnter .65s var(--ease-out) both}
+.field:nth-of-type(1){animation-delay:.06s}
+.field:nth-of-type(2){animation-delay:.12s}
+.field:nth-of-type(3){animation-delay:.18s}
+.field:nth-of-type(4){animation-delay:.24s}
+label{transition:color .25s,text-shadow .25s}
+.field:focus-within>label{color:#c5bbff;text-shadow:0 0 18px #8c75ff55}
+input[type=url],input[type=text]{
+  transition:border-color .28s,box-shadow .32s,background .32s,transform .28s var(--ease-out);
+}
+input[type=url]:hover,input[type=text]:hover{border-color:#7885c766;background:#0b1329}
+input[type=url]:focus,input[type=text]:focus{
+  transform:translateY(-1px);box-shadow:0 0 0 3px #7669ff20,0 9px 25px #0003,inset 0 1px #ffffff08;
+}
+.app-name-input{
+  background-image:linear-gradient(110deg,#111a35,#17152f)!important;
+  background-size:180% 180%!important;transition:all .35s var(--ease-out)!important;
+}
+.app-name-input:focus{background-position:100% 50%!important}
+.file-drop{
+  isolation:isolate;transform:translateZ(0);
+  transition:transform .35s var(--ease-out),border-color .3s,background .3s,box-shadow .35s;
+}
+.file-drop:before{
+  content:"";position:absolute;z-index:-1;inset:0;opacity:0;
+  background:linear-gradient(105deg,transparent 20%,#ffffff0c 48%,transparent 75%);
+  transform:translateX(-100%);transition:opacity .25s;
+}
+.file-drop:hover{transform:translateY(-3px);box-shadow:0 13px 30px #0003,0 0 0 1px #9c8cff18}
+.file-drop:hover:before{opacity:1;animation:dropSweep .9s var(--ease-out)}
+.file-drop:focus-within{transform:translateY(-2px);outline:2px solid #8e80ff55;outline-offset:3px}
+.file-icon{transition:transform .4s var(--ease-out),box-shadow .35s,background .35s}
+.file-drop:hover .file-icon{transform:rotate(-7deg) scale(1.08);box-shadow:0 7px 19px #7568ff25}
+.file-icon svg{transition:transform .35s var(--ease-out)}
+.file-drop:hover .file-icon svg{transform:scale(1.12)}
+.file-main{transition:color .25s}
+.file-drop:hover .file-main{color:#fff}
+.file-action{transition:transform .3s var(--ease-out),background .3s,border-color .3s,box-shadow .3s}
+.file-drop:hover .file-action{transform:translateX(2px);background:#927cff20;border-color:#b39cff80;box-shadow:0 4px 14px #7668ff22}
+.file-drop.selected{animation:fileSelected .5s var(--ease-out)}
+.file-drop.selected .file-icon{animation:successPop .55s var(--ease-out)}
+.primary{
+  isolation:isolate;transform:translateZ(0);
+  transition:transform .32s var(--ease-out),box-shadow .35s,filter .35s;
+}
+.primary:after{
+  content:"";position:absolute;z-index:-1;inset:1px;border-radius:14px;
+  background:linear-gradient(110deg,#ffffff12,transparent 35%,#ffffff14 70%,transparent);
+  opacity:.6;transition:opacity .3s;
+}
+.primary:hover:not(:disabled){transform:translateY(-3px) scale(1.008);box-shadow:0 18px 42px #6e65ff66,0 0 0 1px #ffffff20,inset 0 1px #ffffff55}
+.primary:hover:not(:disabled):after{opacity:1}
+.primary:active:not(:disabled){transform:translateY(0) scale(.975);filter:brightness(1.12)}
+.primary:focus-visible{outline:3px solid #b7aaff;outline-offset:4px}
+.primary svg{transition:transform .4s var(--ease-out)}
+.primary:hover:not(:disabled) svg{transform:translateY(-2px) rotate(-8deg)}
+.primary:disabled{filter:saturate(.7)}
+.ripple{
+  position:absolute;z-index:0;width:18px;height:18px;border-radius:50%;
+  background:#ffffff70;pointer-events:none;transform:scale(0);
+  animation:rippleOut .65s ease-out forwards;
+}
+#status{backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+#status[data-kind="loading"]{box-shadow:0 14px 38px #0003,0 0 30px #7e6cff10,inset 0 1px #ffffff0a}
+#status[data-kind="success"]{animation:successReveal .65s var(--ease-out) both}
+#status[data-kind="error"]{animation:errorReveal .45s ease both}
+.loader-art{filter:drop-shadow(0 0 12px #7e70ff25)}
+.loader-core{animation:corePulse 2s ease-in-out infinite,coreHue 6s linear infinite}
+.progress-track{box-shadow:inset 0 1px 3px #0008,0 0 0 1px #ffffff08}
+.progress-bar{background-size:200% 100%;animation:barFlow 3s linear infinite}
+.status-dot{animation:statusPulse 1.8s ease-in-out infinite}
+.foot{transition:color .3s}
+.foot:hover{color:#b8c2e1}
+.foot svg{transition:transform .4s var(--ease-out),filter .3s}
+.foot:hover svg{transform:rotate(8deg) scale(1.15);filter:drop-shadow(0 0 7px #9d91ff)}
+button:disabled,.file-drop input:disabled{cursor:not-allowed}
+@keyframes ambientDrift{from{transform:translate3d(-2%,0,0) scale(1)}to{transform:translate3d(2%,2%,0) scale(1.08)}}
+@keyframes logoSweep{0%,55%{left:-55%}85%,100%{left:140%}}
+@keyframes statusPulse{0%,100%{opacity:.75;transform:scale(.9);box-shadow:0 0 5px currentColor}50%{opacity:1;transform:scale(1.18);box-shadow:0 0 15px currentColor}}
+@keyframes titleFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes gradientFlow{to{background-position:200% center}}
+@keyframes borderFlow{to{background-position:200% 100%}}
+@keyframes fieldEnter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes dropSweep{to{transform:translateX(100%)}}
+@keyframes fileSelected{0%{transform:scale(.985)}65%{transform:scale(1.012)}100%{transform:scale(1)}}
+@keyframes successPop{0%{transform:scale(.7) rotate(-15deg)}65%{transform:scale(1.14) rotate(5deg)}100%{transform:scale(1)}}
+@keyframes rippleOut{to{transform:scale(18);opacity:0}}
+@keyframes successReveal{0%{opacity:0;transform:translateY(10px) scale(.985)}65%{transform:translateY(-2px) scale(1.005)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes errorReveal{0%{opacity:0;transform:translateX(7px)}50%{transform:translateX(-3px)}100%{opacity:1;transform:translateX(0)}}
+@keyframes coreHue{0%,100%{filter:hue-rotate(0)}50%{filter:hue-rotate(35deg)}}
+@keyframes barFlow{to{background-position:200% center}}
+@media(max-width:520px){
+  .panel:hover{transform:none}
+  .file-drop:hover{transform:none}
+  .primary:hover:not(:disabled){transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+  body:after,.hero h1,.logo:after,.identity:hover .logo,.loader-core,.progress-bar{animation:none!important}
+}
+
+@media(max-width:520px){
+ body{padding:15px 12px 30px}
+ main{margin-top:12px}
+ .topbar{margin-bottom:23px}
+ .logo{width:40px;height:40px}
+ .pill{font-size:10px;padding:6px 9px}
+ .hero{margin-bottom:19px}
+ h1{letter-spacing:-1.2px}
+ .app-name-input{height:62px!important;font-size:17px!important}
+ .panel{border-radius:21px}
+ .file-drop{gap:11px;padding:13px;min-height:83px}
+ .file-action{font-size:10px;padding:7px}
+ .loading-scene{gap:12px}
+ .loader-art{width:65px;height:65px}
+ #status{padding:15px}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+
+/* Оптимизация плавности: эффекты сохраняются, тяжёлые постоянные перерисовки убраны */
+body:after{
+  filter:none!important;
+  animation:none!important;
+  inset:0!important;
+  opacity:.28!important;
+}
+.panel{
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+#status{
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+.panel:before{
+  animation:none!important;
+  background:linear-gradient(125deg,#8d83ff42,transparent 30%,#5ad8e81a 62%,transparent 80%,#b36cff35)!important;
+  background-size:100% 100%!important;
+}
+h1 span{
+  animation:none!important;
+  background-size:100% 100%!important;
+}
+.hero h1{animation:none!important}
+.pulse{
+  animation:none!important;
+  box-shadow:0 0 9px #55d6ae;
+}
+.loader-core{
+  animation:corePulseSmooth 2.8s ease-in-out infinite!important;
+  filter:none!important;
+  will-change:transform;
+}
+.loader-ring,.loader-ring.ring-two{
+  will-change:transform;
+}
+.progress-bar{
+  animation:none!important;
+  background-size:100% 100%!important;
+  transition:width .35s ease-out!important;
+}
+.progress-bar:after{
+  animation:progressShineSmooth 2.8s ease-in-out infinite!important;
+  will-change:transform,opacity;
+}
+.logo:after{
+  animation:none!important;
+  transform:translateX(-160%) rotate(28deg);
+  transition:transform .8s ease;
+}
+.identity:hover .logo:after{
+  transform:translateX(420%) rotate(28deg);
+}
+.panel,.file-drop,.primary,.logo,.file-icon,.step-tag,.pill{
+  transition-duration:.2s!important;
+}
+.panel:hover{
+  box-shadow:0 18px 48px #0004,inset 0 1px #ffffff10!important;
+}
+.file-drop:hover{
+  box-shadow:0 8px 20px #0002,0 0 0 1px #9c8cff14!important;
+}
+.primary:hover:not(:disabled){
+  box-shadow:0 12px 28px #6e65ff48,inset 0 1px #ffffff55!important;
+}
+.primary:after{display:none}
+.primary:before{transition:transform .55s ease;left:0;transform:translateX(-180%) rotate(25deg)}
+.primary:hover:not(:disabled):before{left:0;transform:translateX(520%) rotate(25deg)}
+.ripple{animation:rippleOut .48s ease-out forwards}
+@keyframes corePulseSmooth{
+  0%,100%{transform:rotate(45deg) scale(.92);opacity:.88}
+  50%{transform:rotate(45deg) scale(1.07);opacity:1}
+}
+@keyframes progressShineSmooth{
+  0%,15%{transform:translateX(-120%);opacity:0}
+  35%{opacity:.8}
+  70%,100%{transform:translateX(120%);opacity:0}
+}
+@media(max-width:700px){
+  body:before{background-size:56px 56px;opacity:.11}
+  .panel{box-shadow:0 14px 42px #0004,inset 0 1px #ffffff08}
+}
+@media(prefers-reduced-motion:reduce){
+  .loader-ring,.loader-ring.ring-two,.loader-core,.progress-bar:after{animation:none!important}
+}
+
+
+/* Эффект ускоренного запуска сборки */
+.primary{will-change:transform}
+.primary.launching{
+  animation:launchButton .68s cubic-bezier(.18,.82,.25,1) both!important;
+  box-shadow:0 14px 36px #7568ff70,0 0 24px #a58cff45,inset 0 1px #ffffff70!important;
+}
+.primary.launching:before{
+  animation:launchSweep .62s cubic-bezier(.2,.75,.25,1) both!important;
+  transition:none!important;
+}
+.primary.launching:after{display:block!important;opacity:1!important}
+.primary.launching svg,
+.primary.launching span{
+  animation:launchContent .58s cubic-bezier(.2,.8,.25,1) both;
+}
+.primary.launching svg{filter:drop-shadow(0 0 7px #fff9)}
+@keyframes launchButton{
+  0%{transform:translate3d(0,0,0) scale(1)}
+  28%{transform:translate3d(13px,-2px,0) scale(.985)}
+  58%{transform:translate3d(7px,0,0) scale(.995)}
+  100%{transform:translate3d(0,0,0) scale(1)}
+}
+@keyframes launchContent{
+  0%{transform:translate3d(0,0,0)}
+  35%{transform:translate3d(9px,0,0)}
+  100%{transform:translate3d(0,0,0)}
+}
+@keyframes launchSweep{
+  0%{transform:translateX(-180%) rotate(25deg);opacity:0}
+  20%{opacity:1}
+  100%{transform:translateX(520%) rotate(25deg);opacity:0}
+}
+@media(prefers-reduced-motion:reduce){
+  .primary.launching,.primary.launching:before,.primary.launching svg,.primary.launching span{animation:none!important}
+}
+
 </style>
 </head>
 <body>
 <main>
-<div class="brand">HTML → ANDROID</div>
-<div class="panel">
-<h1>HTML to APK Builder</h1>
-<div class="sub">Загрузи HTML-файл, укажи название приложения и дождись сборки настоящего Android APK.</div>
-<form id="form">
-<label for="worker">Адрес Cloudflare Worker API</label>
-<input id="worker" type="url" placeholder="https://your-worker.workers.dev" required>
-<div class="hint">Адрес Worker, который будет принимать файлы и запускать сборку.</div>
+  <header class="topbar">
+    <div class="identity">
+      <div class="logo">H</div>
+      <div>
+        <div class="brand">HTML TO APK BUILDER</div>
+        <div class="brand-sub">ANDROID APP GENERATOR</div>
+      </div>
+    </div>
+    <div class="pill"><span class="pulse"></span> Онлайн-сборка APK</div>
+  </header>
 
-<label for="appName">Название приложения</label>
-<input id="appName" maxlength="40" placeholder="Моё приложение" required>
+  <section class="hero">
+    <h1>HTML <span>→ APK</span></h1>
+  </section>
 
-<label for="html">HTML-файл</label>
-<input id="html" type="file" accept=".html,.htm,text/html" required>
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="panel-title">Настройка приложения</div>
+      </div>
+      <div class="step-tag">3 шага</div>
+    </div>
 
-<label for="icon">Иконка приложения (необязательно)</label>
-<input id="icon" type="file" accept="image/png,image/jpeg,image/webp">
-<div class="hint">Лучше квадратная PNG-иконка. Если не загрузить, будет создана стандартная.</div>
+    <form id="form">
+      <div class="field">
+        <label for="worker">Адрес Cloudflare Worker API</label>
+        <div class="input-wrap">
+          <input id="worker" type="url" placeholder="https://your-worker.workers.dev" required autocomplete="url" spellcheck="false">
+        </div>
+        <div class="hint">Сервер обработки и сборки Android-приложения.</div>
+      </div>
 
-<button id="submit" type="submit">Собрать APK</button>
-</form>
-<div id="status" role="status"></div>
-</div>
-<div class="foot">Сборка выполняется через GitHub Actions. Для работы нужен настроенный Worker и GitHub token.</div>
+      <div class="field">
+        <label for="appName">Название приложения</label>
+        <input id="appName" class="app-name-input" type="text" maxlength="40" placeholder="Название приложения" required autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label for="html">HTML-файл</label>
+        <label class="file-drop" id="htmlDrop" for="html">
+          <span class="file-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg>
+          </span>
+          <span class="file-copy">
+            <span class="file-main" id="htmlName">Выбрать HTML-файл</span>
+            <span class="file-sub" id="htmlMeta">Формат .html или .htm · до 2 МБ</span>
+          </span>
+          <span class="file-action" id="htmlAction">Обзор</span>
+          <input id="html" type="file" accept=".html,.htm,text/html" required>
+        </label>
+      </div>
+
+      <div class="field">
+        <label for="icon">Иконка приложения <span class="optional">необязательно</span></label>
+        <label class="file-drop" id="iconDrop" for="icon">
+          <span class="file-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+          </span>
+          <span class="file-copy">
+            <span class="file-main" id="iconName">Загрузить иконку</span>
+            <span class="file-sub" id="iconMeta">PNG, JPG или WEBP · до 2 МБ</span>
+          </span>
+          <span class="file-action" id="iconAction">Обзор</span>
+          <input id="icon" type="file" accept="image/png,image/jpeg,image/webp">
+        </label>
+        <div class="hint">Лучше использовать квадратную PNG-иконку. Без неё будет создана стандартная.</div>
+      </div>
+
+      <button class="primary" id="submit" type="submit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5"/><path d="M5 17v3h14v-3"/></svg>
+        <span>Собрать APK</span>
+      </button>
+    </form>
+
+    <div id="status" role="status" aria-live="polite">
+      <div class="loading-scene">
+        <div class="loader-art" aria-hidden="true"><div class="loader-ring"></div><div class="loader-ring ring-two"></div><div class="loader-core"></div></div>
+        <div class="loader-copy"><div class="loader-kicker">BUILD PROCESS</div><div class="loader-stage" id="statusTitle">Подготовка</div><div class="loader-sub" id="loaderStage">Запускаем процесс сборки</div></div>
+      </div>
+      <div class="status-detail" id="statusDetail"></div>
+      <div class="progress-head"><span>ПРОГРЕСС СБОРКИ</span><span id="progressPercent">0%</span></div>
+      <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/></svg>
+    <span>Файлы передаются по защищённому соединению. Сборка приложения выполняется автоматически.</span>
+  </footer>
 </main>
+
 <script>
 const form=document.getElementById('form');
 const statusBox=document.getElementById('status');
 const submit=document.getElementById('submit');
 const workerInput=document.getElementById('worker');
+const htmlInput=document.getElementById('html');
+const iconInput=document.getElementById('icon');
+
+
+// Небольшие тактильные эффекты нажатия — не затрагивают логику сборки.
+document.querySelectorAll('.primary').forEach(button=>{
+  button.addEventListener('click',event=>{
+    if(button.disabled)return;
+    const rect=button.getBoundingClientRect();
+    const ripple=document.createElement('span');
+    ripple.className='ripple';
+    ripple.style.left=(event.clientX-rect.left-9)+'px';
+    ripple.style.top=(event.clientY-rect.top-9)+'px';
+    button.appendChild(ripple);
+    ripple.addEventListener('animationend',()=>ripple.remove(),{once:true});
+  });
+});
+
+[htmlInput,iconInput].forEach(input=>{
+  const drop=input.closest('.file-drop');
+  if(!drop)return;
+  ['dragenter','dragover'].forEach(type=>drop.addEventListener(type,event=>{
+    event.preventDefault();
+    drop.style.borderColor='#b5a4ff';
+    drop.style.boxShadow='0 0 0 4px #8d7aff20,0 12px 30px #0004';
+    drop.style.transform='translateY(-2px)';
+  }));
+  ['dragleave','drop'].forEach(type=>drop.addEventListener(type,event=>{
+    event.preventDefault();
+    drop.style.borderColor='';
+    drop.style.boxShadow='';
+    drop.style.transform='';
+  }));
+  drop.addEventListener('drop',event=>{
+    const files=event.dataTransfer&&event.dataTransfer.files;
+    if(!files||!files.length)return;
+    const transfer=new DataTransfer();
+    transfer.items.add(files[0]);
+    input.files=transfer.files;
+    input.dispatchEvent(new Event('change',{bubbles:true}));
+  });
+});
+
 
 workerInput.value=localStorage.getItem('apk_worker_url')||'https://html-to-apk-builder.daniil-suhorukov215.workers.dev';
 
-function show(message){statusBox.style.display='block';statusBox.textContent=message;}
+function show(message,kind='loading',detail=''){
+  const wasHidden=getComputedStyle(statusBox).display==='none';
+  statusBox.style.display='block';
+  statusBox.dataset.kind=kind;
+  document.getElementById('statusTitle').textContent=message;
+  document.getElementById('statusDetail').textContent=detail;
+  const stage=document.getElementById('loaderStage');
+  stage.textContent=kind==='success'?'Готово к установке':kind==='error'?'Нужно проверить данные':'Идёт обработка проекта';
+  if(wasHidden){
+    requestAnimationFrame(()=>statusBox.scrollIntoView({behavior:'smooth',block:'nearest'}));
+  }
+}
+function setProgress(value){
+  const progress=Math.max(0,Math.min(100,value));
+  document.getElementById('progressBar').style.width=progress+'%';
+  document.getElementById('progressPercent').textContent=Math.round(progress)+'%';
+  const stages=['Подготавливаем проект','Передаём файлы на сервер','Компилируем Android-приложение','Проверяем готовый APK'];
+  const index=progress<10?0:progress<25?1:progress<90?2:3;
+  if(statusBox.dataset.kind==='loading')document.getElementById('loaderStage').textContent=stages[index];
+}
 function baseUrl(){return workerInput.value.trim().replace(/\/+$/,'');}
+
+function updateFile(input,nameId,metaId,actionId,dropId,emptyName,emptyMeta){
+  const file=input.files[0];
+  const drop=document.getElementById(dropId);
+  document.getElementById(nameId).textContent=file?file.name:emptyName;
+  document.getElementById(metaId).textContent=file?(formatSize(file.size)+' · '+file.type):emptyMeta;
+  document.getElementById(actionId).textContent=file?'Выбрано':'Обзор';
+  drop.classList.toggle('selected',!!file);
+}
+function formatSize(bytes){
+  return bytes<1024*1024?(bytes/1024).toFixed(1)+' КБ':(bytes/1024/1024).toFixed(2)+' МБ';
+}
+htmlInput.addEventListener('change',()=>updateFile(htmlInput,'htmlName','htmlMeta','htmlAction','htmlDrop','Выбрать HTML-файл','Формат .html или .htm · до 2 МБ'));
+iconInput.addEventListener('change',()=>updateFile(iconInput,'iconName','iconMeta','iconAction','iconDrop','Загрузить иконку','PNG, JPG или WEBP · до 2 МБ'));
 
 async function requestStatus(base,id){
   const r=await fetch(base+'/status?build_id='+encodeURIComponent(id));
-  if(!r.ok) throw new Error('Worker вернул HTTP '+r.status);
+  if(!r.ok)throw new Error('Worker вернул HTTP '+r.status);
   return await r.json();
 }
 
@@ -65,23 +611,23 @@ form.addEventListener('submit',async e=>{
   e.preventDefault();
 
   const base=baseUrl();
-  const html=document.getElementById('html').files[0];
-  const icon=document.getElementById('icon').files[0];
+  const html=htmlInput.files[0];
+  const icon=iconInput.files[0];
 
   if(!base||!html)return;
 
   if(!/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(base)){
-    show('Укажи корректный HTTPS-адрес Worker.');
+    show('Некорректный адрес Worker','error','Укажи корректный HTTPS-адрес Cloudflare Worker.');
     return;
   }
 
   if(html.size>2*1024*1024){
-    show('HTML-файл слишком большой. Максимум — 2 МБ.');
+    show('HTML-файл слишком большой','error','Максимальный размер файла — 2 МБ.');
     return;
   }
 
   if(icon&&icon.size>2*1024*1024){
-    show('Иконка слишком большая. Максимум — 2 МБ.');
+    show('Иконка слишком большая','error','Максимальный размер файла — 2 МБ.');
     return;
   }
 
@@ -92,50 +638,55 @@ form.addEventListener('submit',async e=>{
   data.append('html',html);
   if(icon)data.append('icon',icon);
 
+  submit.classList.remove('launching');
+  void submit.offsetWidth;
+  submit.classList.add('launching');
   submit.disabled=true;
+  submit.querySelector('span').textContent='Запускаю сборку…';
+  setProgress(5);
 
   try{
-    show('Загружаю файлы и запускаю сборку…');
-
-    const response=await fetch(base+'/build',{
-      method:'POST',
-      body:data
-    });
-
+    show('Загружаю файлы','loading','Отправляю HTML и настройки на сервер сборки.');
+    const response=await fetch(base+'/build',{method:'POST',body:data});
     const result=await response.json();
 
     if(!response.ok)throw new Error(result.error||'Не удалось запустить сборку');
 
     const id=result.build_id;
-
-    show('Сборка запущена. Не закрывай страницу — проверяю статус…');
+    show('Сборка запущена','loading','Подготавливаем Android-приложение. Обычно это занимает несколько минут.');
+    setProgress(10);
 
     for(let i=0;i<360;i++){
       await new Promise(resolve=>setTimeout(resolve,5000));
-
       const state=await requestStatus(base,id);
 
       if(state.status==='completed'&&state.conclusion==='success'){
-        show('APK готов. Начинаю скачивание архива с APK…');
+        show('APK готов!','success','Сборка завершилась успешно. Начинаю скачивание архива с APK.');
+        setProgress(100);
         window.location.href=base+'/download?build_id='+encodeURIComponent(id);
         return;
       }
 
       if(state.status==='completed'){
-        throw new Error('Сборка завершилась с ошибкой. Открой GitHub → Actions → последний запуск, чтобы увидеть журнал.');
+        throw new Error('Не удалось завершить сборку. Проверь файлы и настройки сервера, затем попробуй ещё раз.');
       }
 
-      show('Сборка выполняется… Статус: '+(state.status||'ожидание')+'. Проверка '+(i+1)+'/360.');
+      const progress=Math.min(92,12+Math.floor((i+1)/360*80));
+      setProgress(progress);
+      show('Сборка выполняется','loading','Статус: '+(state.status||'ожидание')+'. Проверка '+(i+1)+'/360.');
     }
 
-    show('Сборка всё ещё выполняется. Проверь GitHub → Actions. Можно вернуться сюда позже и повторить проверку вручную.');
+    show('Сборка ещё выполняется','error','Обработка занимает больше обычного времени. Попробуй проверить статус немного позже.');
+    setProgress(92);
 
   }catch(err){
-    show('Ошибка: '+err.message);
+    show('Не удалось завершить сборку','error',err.message);
   }finally{
+    submit.classList.remove('launching');
     submit.disabled=false;
+    submit.querySelector('span').textContent='Собрать APK';
   }
 });
 </script>
 </body>
-  </html>
+                                                                                                                                           </html>
